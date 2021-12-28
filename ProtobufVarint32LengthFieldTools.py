@@ -37,11 +37,11 @@ def getBodyLength(tcpCliSock):
 
 def writeRawVarint32Header(stream, bodyLen):
     while True:
-        if bodyLen & ~0x7F == 0:
+        if bodyLen & 0x7F == 0:  # 0x7F = 127
             stream.append(int.to_bytes(bodyLen, length=1, byteorder='big'))
             break
         else:
-            stream.append(int.to_bytes((bodyLen & 0x7F) | 0x80, length=1, byteorder='big'))
+            stream.append(int.to_bytes((bodyLen & 0x7F) | 0x80, length=1, byteorder='big'))  # 0x80 = 128
             bodyLen >>= 7
 
 
@@ -73,6 +73,9 @@ def computeRawVarint32Size(data_length):
 if __name__ == '__main__':
     # length = 0b1111010000000011
     # print(length.to_bytes(2, byteorder='big', signed=False))
-    test_header_array = [b'\xf4', b'\x03']
-    length = computeReadableRawSize(test_header_array)
-    print("length : ", length)
+    # test_header_array = [b'\xf4', b'\x03']
+    # length = computeReadableRawSize(test_header_array)
+    # print("length : ", length)
+
+    for i in range(1, 6):
+        print(i)
