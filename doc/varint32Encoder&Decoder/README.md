@@ -320,3 +320,171 @@ def computeReadableRawSize(head_array):
 
 <br>
 
+攤開來就是這樣的一個方法，接下來我會講解一下細節處理：
+
+<br>
+
+首先要清楚我們在這個方法中需要處理什麼樣的需求。
+
+<br>
+
+* 我們拿到了完整的 head_array，所以我們需要先把每一個 byte 的第八位去掉。
+
+* 每一個 byte 留下 1~7 位之後，還需要把他們拼成一整串 bytes 資料才能轉成 readable_length 資訊
+
+<br>
+
+為了解決以上 2 個問題，就來看看是如何實現的吧：
+
+<br>
+
+
+```py
+for index, data in enumerate(head_array):
+    temp = int.from_bytes(data, byteorder='big', signed=False)  # 1
+
+    if int.from_bytes(data, byteorder='big', signed=True) < 0:  # 2
+        temp ^= 0x80   # 3
+        temp <<= (index * 7)  # 4
+        readable_length_array.append(temp)  # 5
+```
+
+<br>
+
+上方標註了 5 個註解點，這五個點會分別講解是在做什麼。
+
+* 註解 #1：temp 存放純粹的原始 header 資料轉成 int 的結果。
+
+* 註解 #2： 這一行就是透過檢查正負號判斷第八位元為 0 還是 1，小於 0 表示第八位是 1，所以需要進入下面 3, 4, 5 行的邏輯。
+
+* 註解 #3：用 temp 原始 header 與 0x80 做 XOR 運算，說白就是把第八位元變 0。
+
+* 註解 #4：`temp <<= (index * 7)`，這邊就是在做位元移位，看目前處理的是第幾個 byte，就往左邊移 index *7 個位置。
+
+* 註解 #5：把處理好的 bytes 存進 `readable_length_array` 中。
+
+<br>
+
+或許帶入一個範例來說明比較明確，這邊用 300 來示範，300 轉成 varint32 之後如下：
+
+```
+1010 1100 1000 0010 0000 0000
+--------- --------- ---------
+```
+
+<br>
+
+3個 bytes，被分別存入 `head_array` 中，像這樣：
+
+```
+head_array = [10101100, 10000010, 00000000]
+```
+
+<br>
+
+先處理第一個 byte `10101100`，由於第八位是 1，所以要先做 `temp ^= 0x80` 去掉第八位的 1：
+
+```
+temp ^= 0x80
+
+1010 1100
+1000 0000 (XOR
+---------------
+0010 1100
+```
+
+<br>
+
+接下來做 `temp <<= (index * 7)`，往左邊位移 index*7 位：
+
+```
+temp <<= (index * 7)
+
+0010 1100 <<= 0*7
+
+0010 1100
+```
+
+<br>
+
+把得出的結果放入 `readable_length_array`：
+
+<br>
+
+```
+readable_length_array = [0010 1100]
+```
+
+<br>
+
+處理下一個 byte `1000 0010`，由於第八位是 1，所以要先做 `temp ^= 0x80` 去掉第八位的 1
+
+```
+temp ^= 0x80
+
+1000 0010
+1000 0000 (XOR
+---------------
+0000 0010
+```
+
+<br>
+
+接下來做 `temp <<= (index * 7)`，往左邊位移 index*7 位：
+
+```
+temp <<= (index * 7)
+
+0000 0010 <<= 1*7
+
+1 0000 0000
+```
+
+把得出的結果放入 `readable_length_array`：
+
+```
+readable_length_array = [0010 1100, 1 0000 0000]
+```
+
+<br>
+
+下一個 byte 為 0 所以不必處理，直接計算 `readable_length` 吧：
+
+```
+for data in readable_length_array:
+        readable_length += data
+```
+
+<br>
+
+```
+  0010 1100
+1 0000 0000 (+
+---------------
+1 0010 1100
+```
+
+<br>
+
+得出結果 1 0010 1100 = 300。
+
+<br>
+
+以上就是取得 `getBodyLength()` 的全部細節實做。
+
+<br>
+
+最後再來看看 `frameDecoder()` 方法的最後一行：
+
+<br>
+
+```py
+return tcpCliSock.recv(data_len, socket.MSG_WAITALL)
+```
+
+<br>
+
+__接收 data_len 長度的 bytes 資料，如果沒有收到該長度資料，則阻塞等待接收完畢後繼續執行。__
+
+<br>
+
