@@ -45,6 +45,7 @@ class PbClientSocket:
                 record.ParseFromString(protobufdata)
                 self.processRecord(record)
                 if record.signal.__eq__(record.Signal.STOP):
+                    self.processEnd()
                     break
             self.tcpCliSocket.close()
         except ConnectionAbortedError:
