@@ -1,8 +1,8 @@
 import threading
 
 from socket import *
-from pbsocket import ProtoData_pb2
-from pbsocket.ProtobufVarint32LengthFieldTools import frameEncoder, frameDecoder
+import ProtoData_pb2
+from ProtobufVarint32LengthFieldTools import frameEncoder, frameDecoder
 
 
 class PbServerSocket:
@@ -42,9 +42,18 @@ class PbServerSocket:
 
     def close(self):
         self.alive = False
+        self.tcpServSocket.close()
+        print("Server socket closed cuccessfully.")
+        exit(0)
 
     def startUp(self):
         self.alive = True
+        t = threading.Thread(target=self.socketAcceptTask)
+        t.daemon = True
+        t.start()
+
+
+    def socketAcceptTask(self):
         self.tcpServSocket.bind(self.ADDR)
         self.tcpServSocket.listen(5)
         print('tcpServSocket start up successfully, server info : ', self.ADDR)
@@ -52,7 +61,6 @@ class PbServerSocket:
             conn, addr = self.tcpServSocket.accept()
             print('accepted connection from : ', addr)
             self.processConn(conn, addr)
-
 
 
 

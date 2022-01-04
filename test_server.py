@@ -1,4 +1,7 @@
-from pbsocket import ProtoData_pb2, PbServerSocket
+import time
+
+import ProtoData_pb2
+from PbServerSocket import PbServerSocket
 
 if __name__ == '__main__':
     data1 = ProtoData_pb2.PbData()
@@ -17,6 +20,10 @@ if __name__ == '__main__':
 
     server = PbServerSocket()
     server.record_list.append(record)
-    # server.record_list.append(recordEnd)
+    server.record_list.append(recordEnd)
     server.startUp()
+
+    # 關閉 Server Socket 時使用
+    # time.sleep(10)
+    # server.close()
 

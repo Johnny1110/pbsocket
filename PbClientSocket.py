@@ -2,8 +2,8 @@ import sys
 from abc import abstractmethod
 from socket import *
 
-from pbsocket import ProtoData_pb2
-from pbsocket.ProtobufVarint32LengthFieldTools import frameDecoder, frameEncoder
+import ProtoData_pb2
+from ProtobufVarint32LengthFieldTools import frameDecoder, frameEncoder
 
 
 class PbClientSocket:

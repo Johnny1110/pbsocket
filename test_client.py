@@ -1,6 +1,6 @@
 from time import sleep
 
-from pbsocket import PbClientSocket
+from PbClientSocket import PbClientSocket
 
 
 class MyClient(PbClientSocket):

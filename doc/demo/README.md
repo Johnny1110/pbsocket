@@ -25,7 +25,7 @@
 ## test_client.py
 
 ```py
-from pbsocket import PbClientSocket
+from PbClientSocket import PbClientSocket
 
 
 class MyClient(PbClientSocket): ## 繼承 PbClientSocket，並實現 processRecord() 方法。
@@ -53,7 +53,7 @@ if __name__ == '__main__':
 <br>
 
 ```py
-from pbsocket import ProtoData_pb2, PbServerSocket
+from PbServerSocket import PbServerSocket
 
 if __name__ == '__main__':
     data1 = ProtoData_pb2.PbData()

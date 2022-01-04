@@ -46,8 +46,8 @@ import sys
 from abc import abstractmethod
 from socket import *
 
-from pbsocket import ProtoData_pb2
-from pbsocket.ProtobufVarint32LengthFieldTools import frameDecoder, frameEncoder
+import ProtoData_pb2
+from ProtobufVarint32LengthFieldTools import frameDecoder, frameEncoder
 
 
 class PbClientSocket:
@@ -154,8 +154,8 @@ class PbClientSocket:
 import threading
 
 from socket import *
-from pbsocket import ProtoData_pb2
-from pbsocket.ProtobufVarint32LengthFieldTools import frameEncoder, frameDecoder
+import ProtoData_pb2
+from ProtobufVarint32LengthFieldTools import frameEncoder, frameDecoder
 
 
 class PbServerSocket:
@@ -195,9 +195,17 @@ class PbServerSocket:
 
     def close(self):
         self.alive = False
+        self.tcpServSocket.close()
+        print("Server socket closed cuccessfully.")
+        exit(0)
 
     def startUp(self):
         self.alive = True
+        t = threading.Thread(target=self.socketAcceptTask)
+        t.daemon = True
+        t.start()
+
+    def socketAcceptTask(self):
         self.tcpServSocket.bind(self.ADDR)
         self.tcpServSocket.listen(5)
         print('tcpServSocket start up successfully, server info : ', self.ADDR)
@@ -209,7 +217,7 @@ class PbServerSocket:
 
 <br>
 
-以下列出 6 個方法，並分鱉講解。
+以下列出 7 個方法，並分鱉講解。
 
 <br>
 
@@ -221,13 +229,19 @@ class PbServerSocket:
 
 * `startUp(self):` 啟動方法：
 
-  啟動方法，`self.tcpServSocket.listen(5)` 意為同時最多可以連線 5 個 Client。只要 Server 沒有關閉，就會一直接受 Connect 請求。有 connection 進連就丟給 `processConn(conn, addr)` 處理。
+  啟動方法，把 socket accept 動作放到一個 daemon thread 執行。
+
+<br>
+
+* `def socketAcceptTask(self):` socket accept 方法：
+
+  啟動 socket，`self.tcpServSocket.listen(5)` 表示同時可以接收處裡 5 個連線，這是一個 thread 的 task 方法。
 
 <br>
 
 * `processConn(self, conn, addr):` 處理連線方法：
 
-  處理連線請求的方法，當有連線時會啟動 2 個 socket，分別處裡 `sendRecord` 與 `recvRecord` 兩個事件，這兩個事件分別開 2 個 Thread 處理。
+  處理連線請求的方法，當有連線時會啟動 2 個 Thread，分別處裡 `sendRecord` 與 `recvRecord` 兩個事件。
 
 <br>
 
@@ -245,7 +259,7 @@ class PbServerSocket:
 
 * `close(self):` 關閉方法：
 
-  關閉 connection 的方法。通常情況下搭配偵測 Signal 為 `STOP` 使用。
+  關閉 socket 的方法。在需要完全關閉 socket 時使用。
 
 <br>
 <br>
