@@ -43,10 +43,11 @@ class PbClientSocket:
                 protobufdata = frameDecoder(self.tcpCliSocket)
                 record = ProtoData_pb2.Record()
                 record.ParseFromString(protobufdata)
-                self.processRecord(record)
                 if record.signal.__eq__(record.Signal.STOP):
                     self.processEnd()
                     break
+                self.processRecord(record)
+
             self.tcpCliSocket.close()
         except ConnectionAbortedError:
             print('Connection has been terminated by DMServer on your host.')
