@@ -25,21 +25,21 @@
 ## test_client.py
 
 ```py
+from time import sleep
+
 from PbClientSocket import PbClientSocket
 
 
-class MyClient(PbClientSocket): ## 繼承 PbClientSocket，並實現 processRecord() 方法。
+class MyClient(PbClientSocket):
     def processRecord(self, record):
-        if record.signal.__eq__(record.Signal.STOP):
-            pass # 遇到 STOP record 不必處理，交給父類別的流程定義就好了。
         print(record)
         print('---'*30)
-        sleep(3)
+        sleep(1)
         self.sendRecord(record)
 
 
 if __name__ == '__main__':
-    myClient = MyClient()
+    myClient = MyClient(host="kubernetes.docker.internal", port=54802)
     myClient.startUp()
 ```
 
@@ -53,6 +53,9 @@ if __name__ == '__main__':
 <br>
 
 ```py
+import time
+
+import ProtoData_pb2
 from PbServerSocket import PbServerSocket
 
 if __name__ == '__main__':
@@ -72,6 +75,10 @@ if __name__ == '__main__':
 
     server = PbServerSocket()
     server.record_list.append(record)
-    # server.record_list.append(recordEnd)
+    server.record_list.append(recordEnd)
     server.startUp()
+
+    # 關閉 Server Socket 時使用
+    # time.sleep(10)
+    # server.close()
 ```
